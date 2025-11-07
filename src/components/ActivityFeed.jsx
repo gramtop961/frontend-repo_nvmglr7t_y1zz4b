@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight, Copy } from 'lucide-react';
 
+const API_BASE = import.meta.env.VITE_BACKEND_URL || '';
+
 function shorten(str, head = 6, tail = 6) {
   if (!str) return '';
   if (str.length <= head + tail) return str;
@@ -21,7 +23,7 @@ const Row = ({ item }) => {
         </button>
       </div>
       <div className="sm:col-span-3 text-sm">{item.type}</div>
-      <div className="sm:col-span-3 text-sm">{item.slot.toLocaleString()}</div>
+      <div className="sm:col-span-3 text-sm">{item.slot?.toLocaleString?.() ?? item.slot}</div>
       <div className="sm:col-span-2 text-sm font-mono">{item.fee} SOL</div>
       <div className="sm:col-span-1 flex justify-end">
         <button className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-700">View<ChevronRight className="h-4 w-4"/></button>
@@ -34,28 +36,22 @@ export default function ActivityFeed() {
   const [items, setItems] = useState(null);
 
   useEffect(() => {
-    // Mock stream of recent transactions
-    const seed = Array.from({ length: 8 }).map((_, i) => ({
-      sig: `5D${(Math.random() + 1).toString(36).slice(2)}${i.toString(36)}3A${(Math.random() + 1).toString(36).slice(2)}`,
-      type: Math.random() > 0.5 ? 'Transfer' : 'Stake',
-      slot: 194000000 + Math.floor(Math.random() * 100000),
-      fee: (Math.random() * 0.001).toFixed(4),
-    }));
-    setItems(seed);
+    let active = true;
 
-    const interval = setInterval(() => {
-      setItems((prev) => {
-        const next = [{
-          sig: `5D${(Math.random() + 1).toString(36).slice(2)}3A${(Math.random() + 1).toString(36).slice(2)}`,
-          type: Math.random() > 0.5 ? 'Transfer' : 'Stake',
-          slot: 194000000 + Math.floor(Math.random() * 100000),
-          fee: (Math.random() * 0.001).toFixed(4),
-        }, ...(prev || [])].slice(0, 12);
-        return next;
-      });
-    }, 3500);
+    async function load() {
+      try {
+        const res = await fetch(`${API_BASE}/api/solana/recent-transactions?limit=10`);
+        if (!res.ok) throw new Error('Failed to load');
+        const data = await res.json();
+        if (active) setItems(data.items || []);
+      } catch (e) {
+        // ignore
+      }
+    }
 
-    return () => clearInterval(interval);
+    load();
+    const id = setInterval(load, 5000);
+    return () => { active = false; clearInterval(id); };
   }, []);
 
   return (
