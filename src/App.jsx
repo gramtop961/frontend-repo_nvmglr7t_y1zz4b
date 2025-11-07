@@ -1,28 +1,35 @@
-import { useState } from 'react'
+import { useState } from 'react';
+import Header from './components/Header';
+import SearchBar from './components/SearchBar';
+import StatsGrid from './components/StatsGrid';
+import ActivityFeed from './components/ActivityFeed';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [lastQuery, setLastQuery] = useState('');
+
+  const handleSearch = (q) => {
+    setLastQuery(q);
+    // In a full version, this would navigate to a details view using backend data
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center">
-      <div className="bg-white p-8 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Vibe Coding Platform
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Your AI-powered development environment
-        </p>
-        <div className="text-center">
-          <button
-            onClick={() => setCount(count + 1)}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
-          >
-            Count is {count}
-          </button>
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-b from-white to-indigo-50/40 dark:from-neutral-950 dark:to-neutral-900 text-neutral-900 dark:text-white">
+      <Header />
+      <main>
+        <SearchBar onSearch={handleSearch} />
+        {lastQuery && (
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-4 mb-4">
+            <div className="text-xs text-neutral-600 dark:text-neutral-300">
+              Showing sample results for: <span className="font-mono font-medium">{lastQuery}</span>
+            </div>
+          </div>
+        )}
+        <StatsGrid />
+        <ActivityFeed />
+      </main>
+      <footer className="py-8 text-center text-xs text-neutral-500">Built as a minimal Solscan-inspired explorer UI</footer>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
